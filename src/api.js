@@ -49,3 +49,13 @@ export async function apiPostPublic(path, body) {
   }
   return response.text();
 }
+const bloodGroupDisplay = {
+  A_POS: "A+", A_NEG: "A-",
+  B_POS: "B+", B_NEG: "B-",
+  AB_POS: "AB+", AB_NEG: "AB-",
+  O_POS: "O+", O_NEG: "O-",
+};
+
+export function formatBloodGroup(group) {
+  return bloodGroupDisplay[group] || group;
+}

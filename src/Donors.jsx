@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "./api";
+import { apiGet, formatBloodGroup } from "./api";
 
 function Donors({ auth }) {
   const [donors, setDonors] = useState([]);
@@ -58,7 +58,7 @@ function Donors({ auth }) {
                   <td style={{ fontWeight: "500" }}>{donor.fullName}</td>
                   <td>
                     <span className="badge" style={{ background: "#e6395022", color: "#f16a75" }}>
-                      {donor.bloodGroup}
+                      {formatBloodGroup(donor.bloodGroup)}
                     </span>
                   </td>
                   <td>{donor.totalDonations}</td>

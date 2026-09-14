@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "./api";
+import { apiGet, formatBloodGroup } from "./api";
 
 const statusColors = {
   AVAILABLE: "#27ae60",
@@ -131,7 +131,7 @@ function Inventory({ auth, currentUser }) {
                   <tr key={unit.id}>
                     <td>
                       <span className="badge" style={{ background: "#e6395022", color: "#f16a75" }}>
-                        {unit.bloodGroup}
+                        {formatBloodGroup(unit.bloodGroup)}
                       </span>
                     </td>
                     <td>{unit.componentType}</td>

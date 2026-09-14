@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "./api";
+import { apiGet, formatBloodGroup } from "./api";
 
 const urgencyColors = { NORMAL: "#3498db", URGENT: "#f39c12", CRITICAL: "#e63950" };
 const statusColors = { PENDING: "#f39c12", PARTIALLY_FULFILLED: "#3498db", FULFILLED: "#27ae60", CANCELLED: "#7f8c8d" };
@@ -136,7 +136,7 @@ function Requests({ auth, currentUser }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "15px", fontWeight: "600" }}>{req.patientName || "Unnamed patient"}</div>
                   <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    {req.bloodGroup} · {req.componentType} · {req.quantityNeeded} unit(s)
+                    {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityNeeded} unit(s)
                   </div>
                 </div>
                 <div style={{ width: "90px", textAlign: "center" }}>

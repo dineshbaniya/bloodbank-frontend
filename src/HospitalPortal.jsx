@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "./api";
+import { apiGet, apiPost, formatBloodGroup } from "./api";
 
 const urgencyColors = { NORMAL: "#3498db", URGENT: "#f39c12", CRITICAL: "#e63950" };
 const statusColors = { PENDING: "#f39c12", PARTIALLY_FULFILLED: "#3498db", FULFILLED: "#27ae60", CANCELLED: "#7f8c8d" };
@@ -73,8 +73,8 @@ function HospitalPortal({ auth, currentUser }) {
                 style={{ width: "100%", background: "#ffffff08", border: "1px solid var(--border-soft)", borderRadius: "10px", padding: "11px 14px", color: "var(--text-primary)" }}
               >
                 {["A_POS", "A_NEG", "B_POS", "B_NEG", "AB_POS", "AB_NEG", "O_POS", "O_NEG"].map((bg) => (
-                  <option key={bg} value={bg} style={{ background: "#181a21" }}>{bg}</option>
-                ))}
+                 <option key={bg} value={bg} style={{ background: "#181a21" }}>{formatBloodGroup(bg)}</option>
+                 ))}
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -133,7 +133,7 @@ function HospitalPortal({ auth, currentUser }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "15px", fontWeight: "600" }}>{req.patientName}</div>
                   <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    {req.bloodGroup} · {req.componentType} · {req.quantityNeeded} unit(s)
+                    {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityNeeded} unit(s)
                   </div>
                   {isRecentlyFulfilled && (
                   <span style={{ fontSize: "11px", color: "#27ae60", fontWeight: "600" }}>

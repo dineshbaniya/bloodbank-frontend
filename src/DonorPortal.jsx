@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "./api";
+import { apiGet, formatBloodGroup } from "./api";
 
 function DonorPortal({ auth }) {
   const [profile, setProfile] = useState(null);
@@ -51,7 +51,7 @@ function DonorPortal({ auth }) {
       <div style={{ display: "flex", gap: "18px", flexWrap: "wrap", marginBottom: "24px" }}>
         <div className="card" style={{ padding: "24px", minWidth: "180px" }}>
           <div className="stat-label">Blood Group</div>
-          <div className="stat-value" style={{ color: "#e63950" }}>{profile.bloodGroup}</div>
+          <div className="stat-value" style={{ color: "#e63950" }}>{formatBloodGroup(profile.bloodGroup)}</div>
         </div>
         <div className="card" style={{ padding: "24px", minWidth: "180px" }}>
           <div className="stat-label">Total Donations</div>

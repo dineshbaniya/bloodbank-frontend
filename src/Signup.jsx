@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiPostPublic } from "./api";
+import { apiPostPublic, formatBloodGroup } from "./api";
 
 const bloodGroups = ["A_POS", "A_NEG", "B_POS", "B_NEG", "AB_POS", "AB_NEG", "O_POS", "O_NEG"];
 
@@ -88,7 +88,7 @@ function Signup({ onBackToLogin }) {
                 style={{ width: "100%", background: "#ffffff08", border: "1px solid var(--border-soft)", borderRadius: "10px", padding: "11px 14px", color: "var(--text-primary)" }}
               >
                 {bloodGroups.map((bg) => (
-                  <option key={bg} value={bg} style={{ background: "#181a21" }}>{bg}</option>
+                <option key={bg} value={bg} style={{ background: "#181a21" }}>{formatBloodGroup(bg)}</option>
                 ))}
               </select>
             </div>

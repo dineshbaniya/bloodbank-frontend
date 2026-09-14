@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet } from "./api";
+import { apiGet, formatBloodGroup } from "./api";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const groupColors = {
@@ -46,8 +46,7 @@ function Dashboard({ auth, onNavigate }) {
   donors.forEach((d) => {
     groupCounts[d.bloodGroup] = (groupCounts[d.bloodGroup] || 0) + 1;
   });
-  const chartData = Object.entries(groupCounts).map(([name, value]) => ({ name, value }));
-
+  const chartData = Object.entries(groupCounts).map(([name, value]) => ({ name, displayName: formatBloodGroup(name), value })); 
   const recentRequests = [...requests].sort((a, b) => b.id - a.id).slice(0, 5);
 
   const quickActions = [
@@ -82,7 +81,7 @@ function Dashboard({ auth, onNavigate }) {
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                <Pie data={chartData} dataKey="value" nameKey="displayName" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
                   {chartData.map((entry) => (
                     <Cell key={entry.name} fill={groupColors[entry.name] || "#7f8c8d"} />
                   ))}
@@ -120,7 +119,7 @@ function Dashboard({ auth, onNavigate }) {
             {expiringSoon.map((unit) => (
               <div key={unit.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #ffffff08" }}>
                 <div style={{ fontSize: "14px" }}>
-                  <span style={{ fontWeight: "500" }}>{unit.bloodGroup}</span>
+                  <span style={{ fontWeight: "500" }}>{formatBloodGroup(unit.bloodGroup)}</span>
                   <span style={{ color: "var(--text-secondary)" }}> · {unit.componentType}</span>
                 </div>
                 <span style={{ fontSize: "13px", color: "#f39c12", fontWeight: "600" }}>
@@ -143,7 +142,7 @@ function Dashboard({ auth, onNavigate }) {
                 <div key={req.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #ffffff08" }}>
                   <div style={{ fontSize: "14px" }}>
                     <span style={{ fontWeight: "500" }}>{req.patientName || "Unnamed"}</span>
-                    <span style={{ color: "var(--text-secondary)" }}> · {req.bloodGroup} · {req.quantityNeeded} unit(s)</span>
+                    <span style={{ color: "var(--text-secondary)" }}> · {formatBloodGroup(req.bloodGroup)} · {req.quantityNeeded} unit(s)</span>
                   </div>
                   <span className="pill" style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
                     {req.urgency}
