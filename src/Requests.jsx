@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, formatBloodGroup } from "./api";
+import { apiGet, apiPostNoBody, formatBloodGroup } from "./api";
 
 const urgencyColors = { NORMAL: "#3498db", URGENT: "#f39c12", CRITICAL: "#e63950" };
 const statusColors = { PENDING: "#f39c12", PARTIALLY_FULFILLED: "#3498db", FULFILLED: "#27ae60", CANCELLED: "#7f8c8d" };
@@ -37,11 +37,7 @@ function Requests({ auth, currentUser }) {
     setSendingId(req.id);
     setMessage("");
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/alerts/send/${req.id}?lat=${BANK_LAT}&lng=${BANK_LNG}`,
-        { method: "POST", headers: { Authorization: auth } }
-      );
-      const alerts = await response.json();
+      const alerts = await apiPostNoBody(`/alerts/send/${req.id}?lat=${BANK_LAT}&lng=${BANK_LNG}`, auth);
       if (alerts.length === 0) {
         setMessage(`No eligible donors found nearby for ${req.patientName || "this request"}.`);
       } else {
