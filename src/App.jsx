@@ -89,7 +89,7 @@ function App() {
       {isDonor && <DonorPortal auth={auth} />}
       {isHospitalStaff && <HospitalPortal auth={auth} currentUser={currentUser} />}
       {isBloodBankStaff && activePage === "dashboard" && <Dashboard auth={auth} onNavigate={setActivePage} />}
-      {isBloodBankStaff && activePage === "donors" && <Donors auth={auth} />}
+      {isBloodBankStaff && activePage === "donors" && <Donors auth={auth} currentUser={currentUser} />}
       {isBloodBankStaff && activePage === "inventory" && <Inventory auth={auth} currentUser={currentUser} />}
       {isBloodBankStaff && activePage === "requests" && <Requests auth={auth} currentUser={currentUser} />}
       {isBloodBankStaff && activePage === "forecast" && <Forecast auth={auth} />}
