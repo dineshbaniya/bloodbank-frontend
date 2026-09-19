@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPostNoBody, formatBloodGroup } from "./api";
+import { apiGet, apiPost, apiPostNoBody, formatBloodGroup } from "./api";
 
 const urgencyColors = { NORMAL: "#3498db", URGENT: "#f39c12", CRITICAL: "#e63950" };
 const statusColors = { PENDING: "#f39c12", PARTIALLY_FULFILLED: "#3498db", FULFILLED: "#27ae60", CANCELLED: "#7f8c8d" };
@@ -13,6 +13,9 @@ function Requests({ auth, currentUser }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [sendingId, setSendingId] = useState(null);
+  const [reservingId, setReservingId] = useState(null);
+  const [issuingId, setIssuingId] = useState(null);
+  const [reservedRequestIds, setReservedRequestIds] = useState([]);
   const [search, setSearch] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState("ALL");
 
@@ -47,6 +50,43 @@ function Requests({ auth, currentUser }) {
       setMessage("Failed to send alert.");
     } finally {
       setSendingId(null);
+    }
+  }
+
+  async function handleFulfillFromStock(req) {
+    setReservingId(req.id);
+    setMessage("");
+    try {
+      const remaining = req.quantityNeeded - req.quantityFulfilled;
+      const result = await apiPostNoBody(`/inventory/reserve?requestId=${req.id}&quantity=${remaining}`, auth);
+      if (result.reserved === 0) {
+        setMessage(`No matching units in stock for ${req.patientName || "this request"}.`);
+      } else if (result.fullySatisfied) {
+        setMessage(`Reserved ${result.reserved} unit(s) from stock — fully satisfied for ${req.patientName || "this request"}.`);
+        setReservedRequestIds((prev) => [...prev, req.id]);
+      } else {
+        setMessage(`Reserved ${result.reserved} of ${remaining} needed unit(s) from stock — not enough in inventory yet.`);
+        setReservedRequestIds((prev) => [...prev, req.id]);
+      }
+      loadRequests();
+    } catch (err) {
+      setMessage("Failed to reserve from stock.");
+    } finally {
+      setReservingId(null);
+    }
+  }
+
+  async function handleMarkIssued(req) {
+    setIssuingId(req.id);
+    setMessage("");
+    try {
+      const result = await apiPost(`/inventory/issue/${req.id}`, {}, auth);
+      setMessage(result);
+      setReservedRequestIds((prev) => prev.filter((id) => id !== req.id));
+    } catch (err) {
+      setMessage("Failed to mark units as issued.");
+    } finally {
+      setIssuingId(null);
     }
   }
 
@@ -93,27 +133,6 @@ function Requests({ auth, currentUser }) {
         </select>
       </div>
 
-      {!loading && filtered.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            padding: "0 22px 10px",
-            fontSize: "11px",
-            fontWeight: "600",
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.6px",
-          }}
-        >
-          <div style={{ flex: 1 }}>Patient</div>
-          <div style={{ width: "90px", textAlign: "center" }}>Urgency</div>
-          <div style={{ width: "150px", textAlign: "center" }}>Status</div>
-          {canSendAlert && <div style={{ width: "100px", textAlign: "center" }}>Action</div>}
-        </div>
-      )}
-
       {loading ? (
         <p style={{ color: "var(--text-secondary)" }}>Loading requests…</p>
       ) : filtered.length === 0 ? (
@@ -123,38 +142,58 @@ function Requests({ auth, currentUser }) {
           {filtered.map((req) => {
             const urgencyColor = urgencyColors[req.urgency] || "#a8adb8";
             const statusColor = statusColors[req.status] || "#a8adb8";
+            const hasReservedUnits = reservedRequestIds.includes(req.id);
+            const isActiveRequest = req.status === "PENDING" || req.status === "PARTIALLY_FULFILLED";
             return (
               <div
                 key={req.id}
                 className="card"
-                style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: "16px", borderLeft: `3px solid ${urgencyColor}`, borderRadius: "12px" }}
+                style={{ padding: "18px 22px", borderLeft: `3px solid ${urgencyColor}`, borderRadius: "12px" }}
               >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "15px", fontWeight: "600" }}>{req.patientName || "Unnamed patient"}</div>
-                  <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityNeeded} unit(s)
+                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "15px", fontWeight: "600" }}>{req.patientName || "Unnamed patient"}</div>
+                    <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
+                      {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityFulfilled}/{req.quantityNeeded} unit(s) fulfilled
+                    </div>
+                  </div>
+                  <div style={{ width: "90px", textAlign: "center" }}>
+                    <span className="pill" style={{ background: `${urgencyColor}22`, color: urgencyColor, border: `1px solid ${urgencyColor}55` }}>
+                      {req.urgency}
+                    </span>
+                  </div>
+                  <div style={{ width: "150px", textAlign: "center" }}>
+                    <span className="pill" style={{ background: `${statusColor}22`, color: statusColor, border: `1px solid ${statusColor}55` }}>
+                      {req.status}
+                    </span>
                   </div>
                 </div>
-                <div style={{ width: "90px", textAlign: "center" }}>
-                  <span className="pill" style={{ background: `${urgencyColor}22`, color: urgencyColor, border: `1px solid ${urgencyColor}55` }}>
-                    {req.urgency}
-                  </span>
-                </div>
-                <div style={{ width: "150px", textAlign: "center" }}>
-                  <span className="pill" style={{ background: `${statusColor}22`, color: statusColor, border: `1px solid ${statusColor}55` }}>
-                    {req.status}
-                  </span>
-                </div>
-                {canSendAlert && (
-                  <div style={{ width: "100px", textAlign: "center" }}>
-                    {req.status === "PENDING" && (
+                {canSendAlert && isActiveRequest && (
+                  <div style={{ display: "flex", gap: "10px", marginTop: "14px", flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => handleSendAlert(req)}
+                      className="btn-primary"
+                      style={{ padding: "8px 16px", fontSize: "12px" }}
+                      disabled={sendingId === req.id}
+                    >
+                      {sendingId === req.id ? "Sending…" : "Search & Alert Donors"}
+                    </button>
+                    <button
+                      onClick={() => handleFulfillFromStock(req)}
+                      className="btn-primary"
+                      style={{ padding: "8px 16px", fontSize: "12px" }}
+                      disabled={reservingId === req.id}
+                    >
+                      {reservingId === req.id ? "Checking stock…" : "Fulfill from Stock"}
+                    </button>
+                    {hasReservedUnits && (
                       <button
-                        onClick={() => handleSendAlert(req)}
+                        onClick={() => handleMarkIssued(req)}
                         className="btn-primary"
-                        style={{ padding: "8px 16px", fontSize: "12px" }}
-                        disabled={sendingId === req.id}
+                        style={{ padding: "8px 16px", fontSize: "12px", background: "#27ae60" }}
+                        disabled={issuingId === req.id}
                       >
-                        {sendingId === req.id ? "Sending…" : "Send Alert"}
+                        {issuingId === req.id ? "Marking…" : "Mark as Issued to Hospital"}
                       </button>
                     )}
                   </div>
