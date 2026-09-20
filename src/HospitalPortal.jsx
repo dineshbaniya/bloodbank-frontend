@@ -133,13 +133,18 @@ function HospitalPortal({ auth, currentUser }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "15px", fontWeight: "600" }}>{req.patientName}</div>
                   <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityNeeded} unit(s)
+                  {formatBloodGroup(req.bloodGroup)} · {req.componentType} · {req.quantityNeeded} unit(s)
                   </div>
-                  {isRecentlyFulfilled && (
+                  {req.friendlyStatus && (
+                  <div style={{ fontSize: "13px", color: "#3498db", marginTop: "6px", fontWeight: "500" }}>
+                  {req.friendlyStatus}
+                 </div>
+                    )}
+                 {isRecentlyFulfilled && (
                   <span style={{ fontSize: "11px", color: "#27ae60", fontWeight: "600" }}>
-                   ✓ Fulfilled recently
-                  </span>
-               )}
+                 ✓ Fulfilled recently
+                       </span>
+                     )}
                 </div>
                 <span className="pill" style={{ background: `${urgencyColor}22`, color: urgencyColor, border: `1px solid ${urgencyColor}55` }}>
                   {req.urgency}
